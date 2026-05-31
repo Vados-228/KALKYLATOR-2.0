@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>КАЛЬКУЛЯТОР 2.0</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 375px;
+    margin: 50px auto;
+    padding: 10px;
+    border: 2px solid #333;
+    border-radius: 8px;
+    position: relative;
+  }
+  #example {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-weight: bold;
+    font-size: 1.2em;
+  }
+  #score {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-weight: bold;
+    font-size: 1.2em;
+  }
+  #result {
+    text-align: center;
+    margin-top: 10px;
+    height: 20px;
+    font-weight: bold;
+    font-size: 1em;
+    color: green;
+  }
+  input[type="text"] {
+    width: 95.5%;
+    height: 40px;
+    font-size: 1.2em;
+    text-align: right;
+    margin-bottom: 10px;
+    padding: 5px;
+  }
+  button {
+    width: 22%;
+    height: 40px;
+    font-size: 1.1em;
+    margin: 1%;
+    cursor: pointer;
+  }
+  #timer-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 6px;
+    background-color: #2196F3;
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+</style>
+</head>
+<body>
+
+<h2 style="text-align:center;margin-bottom:35px;">КАЛЬКУЛЯТОР 2.0</h2>
+
+<div id="example">Пример: </div>
+<div id="score">Очки: 0</div>
+<div id="result"></div>
+
+<input type="text" id="display" disabled />
+
+<div>
+  <button onclick="appendNumber('7')">7</button>
+  <button onclick="appendNumber('8')">8</button>
+  <button onclick="appendNumber('9')">9</button>
+  <button onclick="appendOperator('/')">÷</button>
+</div>
+<div>
+  <button onclick="appendNumber('4')">4</button>
+  <button onclick="appendNumber('5')">5</button>
+  <button onclick="appendNumber('6')">6</button>
+  <button onclick="appendOperator('*')">×</button>
+</div>
+<div>
+  <button onclick="appendNumber('1')">1</button>
+  <button onclick="appendNumber('2')">2</button>
+  <button onclick="appendNumber('3')">3</button>
+  <button onclick="appendOperator('-')">−</button>
+</div>
+<div>
+  <button onclick="appendNumber('0')">0</button>
+  <button onclick="appendNumber('.')">.</button>
+  <button onclick="clearDisplay()">C</button>
+  <button onclick="appendOperator('+')">+</button>
+</div>
+<div>
+  <button style="width: 97.5%" onclick="checkAnswer()">=</button>
+</div>
+
+<div id="timer-bar"></div>
+
+<h3 id="result"></h3>
+
+<script>
+  const display = document.getElementById('display');
+  const exampleEl = document.getElementById('example');
+  const scoreEl = document.getElementById('score');
+  const timerBar = document.getElementById('timer-bar');
+  const resultEl = document.getElementById('result');
+
+  let currentExample = '';
+  let correctAnswer = 0;
+  let score = 0;
+
+  const TIMER_DURATION = 10000; // 10 секунд
+  let timerInterval = null;
+
+  // Функция генерации случайного примера
+  function generateExample() {
+    const num1 = Math.floor(Math.random() * 20) + 1; // 1-20
+    const num2 = Math.floor(Math.random() * 20) + 1;
+    const ops = ['+', '-', '*', '/'];
+    const op = ops[Math.floor(Math.random() * ops.length)];
+
+    currentExample = `${num1} ${op} ${num2}`;
+
+    switch (op) {
+      case '+':
+        correctAnswer = num1 + num2;
+        break;
+      case '-':
+        correctAnswer = num1 - num2;
+        break;
+      case '*':
+        correctAnswer = num1 * num2;
+        break;
+      case '/':
+        correctAnswer = parseFloat((num1 / num2).toFixed(2));
+        break;
+    }
+
+    exampleEl.textContent = `Пример: ${currentExample} = ?`;
+    resultEl.textContent = '';
+    resetTimer();
+  }
+
+  // Обновление таймера
+  function resetTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+    }
+    let startTime = Date.now();
+    timerBar.style.width = '0%';
+
+    timerInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / TIMER_DURATION, 1);
+      timerBar.style.width = (progress * 100) + '%';
+
+      if (progress >= 1) {
+        clearInterval(timerInterval);
+        checkAnswer(true); // таймер истёк
+      }
+    }, 100);
+  }
+
+  // Очистка дисплея
+  function clearDisplay() {
+    display.value = '';
+  }
+
+  // Добавление числа или точки
+  function appendNumber(num) {
+    display.value += num;
+  }
+
+  // Добавление оператора
+  function appendOperator(op) {
+    if (display.value === '') return;
+    const lastChar = display.value.slice(-1);
+    if (['+', '-', '*', '/'].includes(lastChar)) {
+      display.value = display.value.slice(0, -1) + op;
+    } else {
+      display.value += op;
+    }
+  }
+
+  // Проверка ответа
+  function checkAnswer(timerExpired = false) {
+    clearInterval(timerInterval);
+    timerBar.style.width = '100%';
+
+    let userAnswer = display.value.trim();
+
+    resultEl.textContent = '';
+
+    if (timerExpired) {
+      resultEl.textContent = `Время вышло! Правильный ответ: ${correctAnswer}`;
+      generateExample();
+      return;
+    }
+
+    if (userAnswer === '') {
+      resultEl.textContent = 'Введите ответ!';
+      generateExample();
+      return;
+    }
+
+    let result;
+    try {
+      result = eval(userAnswer);
+      if (userAnswer.includes('/')) {
+        result = parseFloat(result.toFixed(2));
+      }
+    } catch (e) {
+      resultEl.textContent = 'Некорректный ввод!';
+      generateExample();
+      return;
+    }
+
+    if (result === correctAnswer) {
+      score++;
+      resultEl.textContent = 'Правильно!';
+    } else {
+      resultEl.textContent = `Неправильно! Правильный ответ: ${correctAnswer}`;
+    }
+
+    scoreEl.textContent = `Очки: ${score}`;
+    clearDisplay();
+    generateExample();
+  }
+
+  // Обработка кнопки "="
+  document.querySelector('button[onclick="checkAnswer()"]').addEventListener('click', () => {
+    checkAnswer();
+  });
+
+  // Инициализация первого примера
+  generateExample();
+
+</script>
+</body>
+</html>
