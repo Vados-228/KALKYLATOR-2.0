@@ -36,7 +36,7 @@
     font-size: 1em;
     color: green;
   }
-  input[type="text"] {
+  #display {
     width: 95.5%;
     height: 40px;
     font-size: 1.2em;
@@ -70,7 +70,7 @@
 <div id="score">Очки: 0</div>
 <div id="result"></div>
 
-<input type="text" id="display" disabled />
+<input type="text" id="display" />
 
 <div>
   <button onclick="appendNumber('7')">7</button>
@@ -97,6 +97,7 @@
   <button onclick="appendOperator('+')">+</button>
 </div>
 <div>
+  <!-- Убрана кнопка для вставки минуса -->
   <button style="width: 97.5%" onclick="checkAnswer()">=</button>
 </div>
 
@@ -118,15 +119,12 @@
   const TIMER_DURATION = 10000; // 10 секунд
   let timerInterval = null;
 
-  // Функция генерации случайного примера
   function generateExample() {
-    const num1 = Math.floor(Math.random() * 20) + 1; // 1-20
+    const num1 = Math.floor(Math.random() * 20) + 1;
     const num2 = Math.floor(Math.random() * 20) + 1;
     const ops = ['+', '-', '*', '/'];
     const op = ops[Math.floor(Math.random() * ops.length)];
-
     currentExample = `${num1} ${op} ${num2}`;
-
     switch (op) {
       case '+':
         correctAnswer = num1 + num2;
@@ -141,13 +139,11 @@
         correctAnswer = parseFloat((num1 / num2).toFixed(2));
         break;
     }
-
     exampleEl.textContent = `Пример: ${currentExample} = ?`;
     resultEl.textContent = '';
     resetTimer();
   }
 
-  // Обновление таймера
   function resetTimer() {
     if (timerInterval) {
       clearInterval(timerInterval);
@@ -162,22 +158,19 @@
 
       if (progress >= 1) {
         clearInterval(timerInterval);
-        checkAnswer(true); // таймер истёк
+        checkAnswer(true);
       }
     }, 100);
   }
 
-  // Очистка дисплея
   function clearDisplay() {
     display.value = '';
   }
 
-  // Добавление числа или точки
   function appendNumber(num) {
     display.value += num;
   }
 
-  // Добавление оператора
   function appendOperator(op) {
     if (display.value === '') return;
     const lastChar = display.value.slice(-1);
@@ -188,12 +181,12 @@
     }
   }
 
-  // Проверка ответа
+  // Остальной код без изменений
   function checkAnswer(timerExpired = false) {
     clearInterval(timerInterval);
     timerBar.style.width = '100%';
 
-    let userAnswer = display.value.trim();
+    const userInput = display.value.trim();
 
     resultEl.textContent = '';
 
@@ -203,7 +196,7 @@
       return;
     }
 
-    if (userAnswer === '') {
+    if (userInput === '') {
       resultEl.textContent = 'Введите ответ!';
       generateExample();
       return;
@@ -211,8 +204,8 @@
 
     let result;
     try {
-      result = eval(userAnswer);
-      if (userAnswer.includes('/')) {
+      result = eval(userInput);
+      if (userInput.includes('/')) {
         result = parseFloat(result.toFixed(2));
       }
     } catch (e) {
@@ -233,14 +226,11 @@
     generateExample();
   }
 
-  // Обработка кнопки "="
   document.querySelector('button[onclick="checkAnswer()"]').addEventListener('click', () => {
     checkAnswer();
   });
 
-  // Инициализация первого примера
   generateExample();
-
 </script>
 </body>
 </html>
